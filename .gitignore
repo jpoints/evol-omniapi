@@ -1,0 +1,4 @@
+node_modules/
+secureplace/creds.js
+example2/response/*
+!example2/response/readme
