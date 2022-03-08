@@ -1,6 +1,15 @@
 These are examples for the 2022 Evolution Conference. 
 These are only intended for learning puposes so you can learn and develop your own tool set.
 
+Please use these with caution, you could cause unwanted actions, e.g. delete a folder, if you are not careful.
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
 Run : npm install
 
 In the the /secureplace folder, copy _creds.js, and add credentials for your desired site.
