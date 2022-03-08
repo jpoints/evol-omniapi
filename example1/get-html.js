@@ -13,7 +13,7 @@ const axios = Axios.create();
     let request = {
         url: url,
         method: 'get',
-        headers:[],
+        headers:{},
         data:{}
     }
     let response = await axios(request);

@@ -26,27 +26,32 @@ let creds = require("../secureplace/creds.js");
 //authenticators that we will use with the api. 
 var token = "";//used to authenticate the most requests.
 var cookie = "";//needed to logout. /authoriaztion/* endpoints do not accept the token. 
+let log = []; //this will store the response data
 
 //Running the functions
+//This will create an snippet, view it, edit it, and delete it
 (async () => {
   await omniLogin();
 
-  //legacy Apis
-  await getAssetsList("/");
-  let asset = await createAsset();
-  await getAsset(asset.asset);
-  await deleteAsset(asset.asset);
-  await getAsset(asset.asset);//this will fail, it no longer exist
-
-  //REST Apis
+//REST Apis
   await getSnippetsList();
-  await createSnippet("test");
+  let snippetData = {
+    category:"Test",
+    name:"test",
+    group:"Everyone",
+    sites:[creds.site],
+    content:"This is the snippet content",
+    description:"This is my desc"
+  }
+  await createSnippet(snippetData);
   await getSnippet("test");
   await deleteSnippet("test");
   await getSnippet("test");//this will fail, it no longer exist
 
   await omniLogout();
-  await getAssetsList();//this will throw a 401 error, we are logged out.
+  await getSnippetsList();//this will throw a 401 error, we are logged out.
+
+  writeResponse();
 })();
 
 //----example functions------
@@ -69,7 +74,7 @@ async function omniLogin(skin,account,username,password){
 
     //Work with the response
     console.log("User connected? : ",loggedin.status);
-    writeResponse(`login.json`,loggedin.data)
+    log.push([loggedin.headers,loggedin.data]);
 
     
 
@@ -106,151 +111,6 @@ async function omniLogout(){
     console.log("Logout successful? : ",response.status);
 }
 
-// legacy apis
-async function getAssetsList(path){
-
-  //Define the parameters
-  let params = {
-    site:creds.site,
-    path:"/OMNI-ASSETS",
-    count:100,
-    start:0,
-    sort_key:"name",
-    sort_order:"asc",
-    ignore_readers:false,
-    "authorization_token":token
-  }
-
-  //Format the request
-  let request = {
-    url: `/assets/list?${new URLSearchParams(params)}`,
-    method: 'get',
-    headers:{
-      "Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"
-    },
-    data: {}
-  }
-
-  //Send the request
-  let response = await axios(request);
-
-  //Work with the response
-  console.log("Asset List: ",response.status);
-  
-  if(response.status === 200){
-    writeResponse(`assets_list.json`,response.data)
-  }
-  else{
-    console.log("Error : ",response.data);
-  }
-}
-
-async function createAsset(){
-
-  //Define the parameters
-  let params = {
-    "name": "test",
-    "description": "test description",
-    "group": "Everyone",
-    "readers": "Everyone",
-    "content": "this is a test",
-    "site_locked": false,
-    "site": creds.site,
-    "type": 2,
-    "tags": "test",
-    "authorization_token":token
-  }
-
-  //Format the request
-  let request = {
-    url: `/assets/new`,
-    method: 'post',
-    headers:{
-      "Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"
-    },
-    data: new URLSearchParams(params)
-  }
-
-  //Send the request
-  let response = await axios(request);
-
-  //Work with the response
-  console.log("Create Asset: ",response.status);
-
-  if(response.status === 200){
-    writeResponse(`create_asset_${params.name}.json`,response.data)
-    return response.data;
-  }
-  else{
-    console.log("Error : ",response.data);
-  }
-}
-
-async function getAsset(assetid){
-  //Define the parameters
-  let params = {
-    site:creds.site,
-    asset:assetid,
-    "authorization_token":token
-  }
-
-  //Format the request
-  let request = {
-    url: `/assets/view?${new URLSearchParams(params)}`,
-    method: 'get',
-    headers:{
-      "Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"
-    },
-    data: {}
-  }
-
-  //Send the request
-  let response = await axios(request);
-
-  //Work with the response
-  console.log("Get Asset: ",response.status);
-  
-  if(response.status === 200){
-    writeResponse(`assets_${assetid}.json`,response.data)
-    console.log(response.data);
-  }
-  else{
-    console.log("Error : ",response.data);
-  }
-}
-
-async function deleteAsset(assetid){
-  //Define the parameters
-  let params = {
-    site:creds.site,
-    asset:assetid,
-    "authorization_token":token
-  }
-
-  //Format the request
-  let request = {
-    url: `/assets/delete`,
-    method: 'post',
-    headers:{
-      "Content-Type":"application/x-www-form-urlencoded; charset=UTF-8"
-    },
-    data: new URLSearchParams(params)
-  }
-
-  //Send the request
-  let response = await axios(request);
-
-  //Work with the response
-  console.log("Delete Asset: ",response.status);
-
-  if(response.status === 200){
-    writeResponse(`assets_${assetid}.json`,response.data)
-  }
-  else{
-    console.log("Error : ",response.data);
-  }
-}
-
 // rest apis
 async function getSnippetsList(){
 
@@ -283,23 +143,17 @@ async function getSnippetsList(){
   console.log("Get Snippets",response.status);
   
   if(response.status === 200){
-    writeResponse("snippets_list.json",response.data)
+    log.push([response.headers,response.data]);
   }
   else{
     console.log("Error : ",response.headers['x-reason']);
   }
 }
 
-async function createSnippet(name){
+
+async function createSnippet(data){
  //Define the parameters
-  let params = {
-      category:"Test",
-      name:name,
-      group:"Everyone",
-      sites:[creds.site],
-      content:"This is the snippet content",
-      description:"This is my desc"
-  }
+  let params = data;
 
   //Format the request
   let request = {
@@ -319,7 +173,8 @@ async function createSnippet(name){
   console.log("Create Snippet",response.status);
   
   if(response.status === 201){
-    writeResponse(`create_snippet_${params.name}.json`,response.data)
+    log.push([response.headers,response.data]);
+    return response.data;
   }
   else{
     console.log("Error : ",response.headers["x-reason"]);
@@ -351,7 +206,8 @@ async function getSnippet(name){
   console.log("Get Snippet",response.status);
 
   if(response.status === 200){
-    writeResponse(`create_snippet_${params.name}.json`,response.data)
+    log.push([response.headers,response.data]);
+    return response.data
   }
   else{
     console.log("Error : ",response.headers['x-reason']);
@@ -385,7 +241,8 @@ async function deleteSnippet(name){
     console.log("Delete Snippet",response.status);
   
     if(response.status === 204){
-      writeResponse(`create_snippet_${params.name}.json`,response.data)
+      log.push([response.headers,response.data]);
+      return response.data
     }
     else{
       console.log("Error : ",response.data);
@@ -394,9 +251,8 @@ async function deleteSnippet(name){
 
 //helpers
 
-function writeResponse(path,data){
-  fs.writeFileSync(`./response/${path}`, JSON.stringify(data,null, 2));
-
+function writeResponse(){
+  fs.writeFileSync(`report-rest.json`, JSON.stringify(log,null, 2));
 }
 
 

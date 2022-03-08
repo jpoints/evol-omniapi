@@ -1,4 +1,4 @@
-const OMNIAPI = require("./lib/omni-cms.js");
+const OMNIAPI = require("./lib/omni-api.js");
 const creds = require("../secureplace/creds.js");
 creds.host = "a.cms.omniupdate.com";
 

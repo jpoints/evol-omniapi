@@ -1,0 +1,13 @@
+These are examples for the 2022 Evolution Conference. 
+
+Run : npm install
+
+In the the /secureplace folder, copy _creds.js, and add credentials for your desired site.
+ {
+        host:'', //the server host, "a.cms.omniupdate.com" is you are sass user
+        username: '',
+        password: '',
+        skin: '',
+        account: '',
+        site:''
+}

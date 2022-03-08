@@ -1,4 +1,4 @@
-const axiosLib = require('axios');
+const Axios = require('axios');
 const fs = require("fs");
 const FormData = require('form-data');
 //uncomment if you have an invalid ssl certificate
@@ -16,7 +16,7 @@ class OMNIAPI {
         this.token = "";
         this.cookie = "";
         this.log = []
-        this.axios = axiosLib.create({
+        this.axios = Axios.create({
           baseURL:`https://${this.host}`,
           timeout: 60000,
           maxContentLength: 152428890,
@@ -82,7 +82,7 @@ class OMNIAPI {
 
     async get(url,data){
         //Define the parameters
-        let params = this.defaultData(data,"legacy");
+        let params = this.defaultData(data,"rpc");
 
         //Format the request
         let request = {
@@ -128,7 +128,7 @@ class OMNIAPI {
 
     async post(url,data){
          //Define the parameters
-         let params = this.defaultData(data,"legacy");
+         let params = this.defaultData(data,"rpc");
 
          //Format the request
          let request = {
@@ -340,7 +340,7 @@ class OMNIAPI {
         data.site = data.site || this.site
         data.account = data.account || this.account
 
-        if(type === "legacy"){
+        if(type === "rpc"){
             data.authorization_token = this.token
         }
 
@@ -360,7 +360,7 @@ class OMNIAPI {
 
         //update cookie if needed
         if(response.headers["set-cookie"]){
-            //console.log("----new api cookie----");
+            console.log("----new api cookie----");
             this.cookie = response.headers["set-cookie"][0]
         }
 
